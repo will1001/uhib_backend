@@ -2,8 +2,12 @@ const express = require("express");
 const connectDB = require("./db");
 const region = require("./routes/Region");
 const app = express();
+const cors = require("cors");
 
 connectDB();
+
+// Use CORS middleware
+app.use(cors());
 
 app.use(express.json());
 
