@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Kabupaten = require("../models/Kabupaten");
-const Kecamatan = require("../models/Kecamatan");
-const Kelurahan = require("../models/Kelurahan");
+const Kecamatan = require("../models/kecamatan");
+const Kelurahan = require("../models/kelurahan");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
