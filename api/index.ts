@@ -1,6 +1,7 @@
 const express = require("express");
 const connectDB = require("./db");
 const region = require("./routes/Region");
+const suara = require("./routes/Suara");
 const app = express();
 const cors = require("cors");
 
@@ -12,6 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/", region);
+app.use("/", suara);
 
 app.get("/", (req, res) => res.send("Express on Vercel"));
 
