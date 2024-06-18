@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Suara = require("../models/suara");
+const mongoose = require("mongoose");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
@@ -40,7 +41,7 @@ router.get("/suara", async (req, res) => {
         }
       });
 
-      const updatedSuara = await Suara.findByIdAndUpdate(id, updateData, {
+      const updatedSuara = await Suara.findByIdAndUpdate(mongoose.Types.ObjectId(id), updateData, {
         new: true,
       });
       if (!updatedSuara) {
