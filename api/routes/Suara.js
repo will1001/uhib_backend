@@ -22,36 +22,40 @@ router.get("/suara", async (req, res) => {
   } catch (err) {
     handleServerError(err, res);
   }
-  router.put("/suara/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const updateFields = [
-        "grup_suara",
-        "category_suara",
-        "sub_category_suara",
-        "laki_laki",
-        "perempuan",
-        "jumlah",
-      ];
-      let updateData = {};
+});
 
-      updateFields.forEach((field) => {
-        if (req.body[field] !== undefined) {
-          updateData[field] = req.body[field];
-        }
-      });
+router.put("/suara/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateFields = [
+      "grup_suara",
+      "category_suara",
+      "sub_category_suara",
+      "laki_laki",
+      "perempuan",
+      "jumlah",
+    ];
+    let updateData = {};
 
-      const updatedSuara = await Suara.findByIdAndUpdate(mongoose.Types.ObjectId(id), updateData, {
-        new: true,
-      });
-      if (!updatedSuara) {
-        return res.status(404).send("Suara not found");
+    updateFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
       }
-      res.json(updatedSuara);
-    } catch (err) {
-      handleServerError(err, res);
+    });
+
+    const updatedSuara = await Suara.findByIdAndUpdate(
+      new mongoose.Types.ObjectId(id),
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedSuara) {
+      return res.status(404).send("Suara not found");
     }
-  });
+    res.json(updatedSuara);
+  } catch (err) {
+    handleServerError(err, res);
+  }
 });
 
 module.exports = router;
