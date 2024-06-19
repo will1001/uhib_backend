@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Suara = require("../models/suara");
+const TPS = require("../models/tps");
+const mongoose = require("mongoose");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
@@ -21,36 +23,101 @@ router.get("/suara", async (req, res) => {
   } catch (err) {
     handleServerError(err, res);
   }
-  router.put("/suara/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const updateFields = [
-        "grup_suara",
-        "category_suara",
-        "sub_category_suara",
-        "laki_laki",
-        "perempuan",
-        "jumlah",
-      ];
-      let updateData = {};
+});
 
-      updateFields.forEach((field) => {
-        if (req.body[field] !== undefined) {
-          updateData[field] = req.body[field];
-        }
-      });
+router.put("/suara/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateFields = [
+      "grup_suara",
+      "category_suara",
+      "sub_category_suara",
+      "laki_laki",
+      "perempuan",
+      "jumlah",
+    ];
+    let updateData = {};
 
-      const updatedSuara = await Suara.findByIdAndUpdate(id, updateData, {
-        new: true,
-      });
-      if (!updatedSuara) {
-        return res.status(404).send("Suara not found");
+    updateFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
       }
-      res.json(updatedSuara);
-    } catch (err) {
-      handleServerError(err, res);
+    });
+
+    const updatedSuara = await Suara.findByIdAndUpdate(
+      new mongoose.Types.ObjectId(id),
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedSuara) {
+      return res.status(404).send("Suara not found");
     }
-  });
+    res.json(updatedSuara);
+  } catch (err) {
+    handleServerError(err, res);
+  }
+});
+
+router.get("/tps", async (req, res) => {
+  try {
+    const tps = await TPS.find({});
+    res.json(tps);
+  } catch (err) {
+    handleServerError(err, res);
+  }
+});
+
+router.get("/total-suara-per-tps", async (req, res) => {
+  try {
+    const totalSuaraPerTPS = await TPS.aggregate([
+      {
+        $lookup: {
+          from: "suaras",
+          localField: "_id",
+          foreignField: "tps_id",
+          as: "suaraDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$suaraDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          tpsName: { $first: "$name" },
+          totalSuara: {
+            $sum: {
+              $add: [
+                "$suaraDetails.jumlah",
+                "$suaraDetails.laki_laki",
+                "$suaraDetails.perempuan",
+              ],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          tpsName: 1,
+          totalSuara: 1,
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    res.json(totalSuaraPerTPS);
+  } catch (err) {
+    handleServerError(err, res);
+  }
 });
 
 module.exports = router;
