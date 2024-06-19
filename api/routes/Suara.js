@@ -11,12 +11,22 @@ const handleServerError = (err, res) => {
 
 router.get("/suara", async (req, res) => {
   try {
-    const { grup_suara, category_suara, sub_category_suara } = req.query;
+    const {
+      grup_suara,
+      category_suara,
+      sub_category_suara,
+      id_kabupaten,
+      id_kecamatan,
+      id_kelurahan,
+    } = req.query;
 
     let filter = {};
     if (grup_suara) filter.grup_suara = grup_suara;
     if (category_suara) filter.category_suara = category_suara;
     if (sub_category_suara) filter.sub_category_suara = sub_category_suara;
+    if (id_kabupaten) filter.id_kabupaten = id_kabupaten;
+    if (id_kecamatan) filter.id_kecamatan = id_kecamatan;
+    if (id_kelurahan) filter.id_kelurahan = id_kelurahan;
 
     const suara = await Suara.find(filter);
     res.json(suara);
@@ -35,6 +45,9 @@ router.put("/suara/:id", async (req, res) => {
       "laki_laki",
       "perempuan",
       "jumlah",
+      "id_kabupaten",
+      "id_kecamatan",
+      "id_kelurahan",
     ];
     let updateData = {};
 
@@ -47,12 +60,9 @@ router.put("/suara/:id", async (req, res) => {
     const updatedSuara = await Suara.findByIdAndUpdate(
       new mongoose.Types.ObjectId(id),
       updateData,
-      { new: true }
+      { new: true, upsert: true }
     );
 
-    if (!updatedSuara) {
-      return res.status(404).send("Suara not found");
-    }
     res.json(updatedSuara);
   } catch (err) {
     handleServerError(err, res);
@@ -67,7 +77,6 @@ router.get("/tps", async (req, res) => {
     handleServerError(err, res);
   }
 });
-
 
 router.get("/total-suara-per-tps", async (req, res) => {
   try {
