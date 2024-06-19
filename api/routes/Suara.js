@@ -18,6 +18,7 @@ router.get("/suara", async (req, res) => {
       id_kabupaten,
       id_kecamatan,
       id_kelurahan,
+      tps_id,
     } = req.query;
 
     let filter = {};
@@ -27,6 +28,7 @@ router.get("/suara", async (req, res) => {
     if (id_kabupaten) filter.id_kabupaten = id_kabupaten;
     if (id_kecamatan) filter.id_kecamatan = id_kecamatan;
     if (id_kelurahan) filter.id_kelurahan = id_kelurahan;
+    if (tps_id) filter.tps_id = +tps_id;
 
     const suara = await Suara.find(filter);
     res.json(suara);
