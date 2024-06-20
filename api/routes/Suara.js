@@ -50,6 +50,7 @@ router.put("/suara/:id", async (req, res) => {
       "id_kabupaten",
       "id_kecamatan",
       "id_kelurahan",
+      "tps_id",
     ];
     let updateData = {};
 
