@@ -60,7 +60,9 @@ router.put("/suara/:id", async (req, res) => {
     });
 
     const updatedSuara = await Suara.findByIdAndUpdate(
-      new mongoose.Types.ObjectId(id),
+      id === "0"
+        ? new mongoose.Types.ObjectId()
+        : new mongoose.Types.ObjectId(id),
       updateData,
       { new: true, upsert: true }
     );
