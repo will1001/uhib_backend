@@ -30,7 +30,7 @@ router.get("/suara", async (req, res) => {
     if (id_kelurahan) filter.id_kelurahan = id_kelurahan;
     if (tps_id) filter.tps_id = +tps_id;
 
-    const suara = await Suara.find(filter);
+    const suara = await Suara.find(filter).sort({ category_suara: 1, sub_category_suara: 1 });
     res.json(suara);
   } catch (err) {
     handleServerError(err, res);
