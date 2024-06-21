@@ -30,7 +30,10 @@ router.get("/suara", async (req, res) => {
     if (id_kelurahan) filter.id_kelurahan = id_kelurahan;
     if (tps_id) filter.tps_id = +tps_id;
 
-    const suara = await Suara.find(filter).sort({ category_suara: 1, sub_category_suara: 1 });
+    const suara = await Suara.find(filter).sort({
+      category_suara: 1,
+      sub_category_suara: 1,
+    });
     res.json(suara);
   } catch (err) {
     handleServerError(err, res);
@@ -85,7 +88,14 @@ router.get("/tps", async (req, res) => {
 
 router.get("/total-suara-per-tps", async (req, res) => {
   try {
-    const totalSuaraPerTPS = await TPS.aggregate([
+    const { id_kabupaten, id_kecamatan, id_kelurahan, tps_id } = req.query;
+    let matchQuery = {};
+    if (id_kabupaten) matchQuery['suaraDetails.id_kabupaten'] = id_kabupaten;
+    if (id_kecamatan) matchQuery['suaraDetails.id_kecamatan'] = id_kecamatan;
+    if (id_kelurahan) matchQuery['suaraDetails.id_kelurahan'] = id_kelurahan;
+    if (tps_id) matchQuery['suaraDetails.tps_id'] = tps_id;
+
+    const pipeline = [
       {
         $lookup: {
           from: "suaras",
@@ -100,6 +110,8 @@ router.get("/total-suara-per-tps", async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+      // Apply the match query only if there are conditions to match against
+      ...(Object.keys(matchQuery).length > 0 ? [{$match: matchQuery}] : []),
       {
         $group: {
           _id: "$_id",
@@ -107,9 +119,9 @@ router.get("/total-suara-per-tps", async (req, res) => {
           totalSuara: {
             $sum: {
               $add: [
-                "$suaraDetails.jumlah",
-                "$suaraDetails.laki_laki",
-                "$suaraDetails.perempuan",
+                { $ifNull: ["$suaraDetails.jumlah", 0] },
+                { $ifNull: ["$suaraDetails.laki_laki", 0] },
+                { $ifNull: ["$suaraDetails.perempuan", 0] },
               ],
             },
           },
@@ -127,9 +139,22 @@ router.get("/total-suara-per-tps", async (req, res) => {
           _id: 1,
         },
       },
-    ]);
+    ];
 
-    res.json(totalSuaraPerTPS);
+    const totalSuaraPerTPS = await TPS.aggregate(pipeline);
+
+    // Ensure that all TPS are returned even if there are no matching suaraDetails
+    if (totalSuaraPerTPS.length === 0) {
+      const allTPS = await TPS.find({}, { _id: 1, name: 1 }).sort({ _id: 1 });
+      const response = allTPS.map(tps => ({
+        _id: tps._id,
+        tpsName: tps.name,
+        totalSuara: 0
+      }));
+      res.json(response);
+    } else {
+      res.json(totalSuaraPerTPS);
+    }
   } catch (err) {
     handleServerError(err, res);
   }
