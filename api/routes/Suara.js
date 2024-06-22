@@ -88,30 +88,38 @@ router.get("/tps", async (req, res) => {
 
 router.get("/total-suara-per-tps", async (req, res) => {
   try {
-    const { id_kabupaten, id_kecamatan, id_kelurahan, tps_id } = req.query;
+    const { id_kabupaten, id_kecamatan, id_kelurahan } = req.query;
     let matchQuery = {};
-    if (id_kabupaten) matchQuery['suaraDetails.id_kabupaten'] = id_kabupaten;
-    if (id_kecamatan) matchQuery['suaraDetails.id_kecamatan'] = id_kecamatan;
-    if (id_kelurahan) matchQuery['suaraDetails.id_kelurahan'] = id_kelurahan;
-    if (tps_id) matchQuery['suaraDetails.tps_id'] = tps_id;
+    if (id_kabupaten) matchQuery["id_kabupaten"] = id_kabupaten;
+    if (id_kecamatan) matchQuery["id_kecamatan"] = id_kecamatan;
+    if (id_kelurahan) matchQuery["id_kelurahan"] = id_kelurahan;
 
     const pipeline = [
       {
         $lookup: {
           from: "suaras",
-          localField: "_id",
-          foreignField: "tps_id",
-          as: "suaraDetails",
-        },
+          let: { tpsId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$tps_id", "$$tpsId"] },
+                    ...Object.entries(matchQuery).map(([key, value]) => ({ $eq: [`$${key}`, value] })),
+                  ]
+                }
+              }
+            }
+          ],
+          as: "suaraDetails"
+        }
       },
       {
         $unwind: {
           path: "$suaraDetails",
-          preserveNullAndEmptyArrays: true,
-        },
+          preserveNullAndEmptyArrays: true
+        }
       },
-      // Apply the match query only if there are conditions to match against
-      ...(Object.keys(matchQuery).length > 0 ? [{$match: matchQuery}] : []),
       {
         $group: {
           _id: "$_id",
@@ -121,40 +129,28 @@ router.get("/total-suara-per-tps", async (req, res) => {
               $add: [
                 { $ifNull: ["$suaraDetails.jumlah", 0] },
                 { $ifNull: ["$suaraDetails.laki_laki", 0] },
-                { $ifNull: ["$suaraDetails.perempuan", 0] },
-              ],
-            },
-          },
-        },
+                { $ifNull: ["$suaraDetails.perempuan", 0] }
+              ]
+            }
+          }
+        }
       },
       {
         $project: {
           _id: 1,
           tpsName: 1,
-          totalSuara: 1,
-        },
+          totalSuara: 1
+        }
       },
       {
         $sort: {
-          _id: 1,
-        },
-      },
+          _id: 1
+        }
+      }
     ];
 
     const totalSuaraPerTPS = await TPS.aggregate(pipeline);
-
-    // Ensure that all TPS are returned even if there are no matching suaraDetails
-    if (totalSuaraPerTPS.length === 0) {
-      const allTPS = await TPS.find({}, { _id: 1, name: 1 }).sort({ _id: 1 });
-      const response = allTPS.map(tps => ({
-        _id: tps._id,
-        tpsName: tps.name,
-        totalSuara: 0
-      }));
-      res.json(response);
-    } else {
-      res.json(totalSuaraPerTPS);
-    }
+    res.json(totalSuaraPerTPS);
   } catch (err) {
     handleServerError(err, res);
   }
