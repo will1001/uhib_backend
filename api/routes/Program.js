@@ -32,9 +32,45 @@ router.get("/program", async (req, res) => {
       ]);
     } else {
       if (type === "video") {
-        program = await Program.find({ video: { $ne: undefined } });
+        program = await Program.aggregate([
+          {
+            $match: { video: { $ne: undefined } },
+          },
+          {
+            $lookup: {
+              from: "kabupatens",
+              localField: "id_kabupaten",
+              foreignField: "_id",
+              as: "kabupaten",
+            },
+          },
+          {
+            $unwind: {
+              path: "$kabupaten",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ]);
       } else {
-        program = await Program.find({ type });
+        program = await Program.aggregate([
+          {
+            $match: { type },
+          },
+          {
+            $lookup: {
+              from: "kabupatens",
+              localField: "id_kabupaten",
+              foreignField: "_id",
+              as: "kabupaten",
+            },
+          },
+          {
+            $unwind: {
+              path: "$kabupaten",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ]);
       }
     }
     res.json(program);
