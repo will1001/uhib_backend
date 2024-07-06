@@ -14,7 +14,22 @@ router.get("/program", async (req, res) => {
   try {
     let program;
     if (!type) {
-      program = await Program.find();
+      program = await Program.aggregate([
+        {
+          $lookup: {
+            from: "kabupatens",
+            localField: "id_kabupaten",
+            foreignField: "_id",
+            as: "kabupaten",
+          },
+        },
+        {
+          $unwind: {
+            path: "$kabupaten",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ]);
     } else {
       if (type === "video") {
         program = await Program.find({ video: { $ne: undefined } });
@@ -61,7 +76,6 @@ router.post("/program", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 router.delete("/program/:id", async (req, res) => {
   const { id } = req.params;
