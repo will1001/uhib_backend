@@ -9,6 +9,8 @@ const handleServerError = (err, res) => {
 };
 
 router.get("/aspirasi", async (req, res) => {
+  const { page, limit } = req.query;
+
   try {
     let aspirasi = await Aspirasi.aggregate([
       {
@@ -26,7 +28,15 @@ router.get("/aspirasi", async (req, res) => {
         },
       },
     ]);
-    res.json(aspirasi);
+
+    let totalData = await Aspirasi.countDocuments();
+    let metadata = {
+      limit: Number(limit),
+      total: totalData,
+      totalPage: Math.ceil(totalData / limit),
+      currentPage: Number(page),
+    };
+    res.json({ metadata, data: aspirasi });
   } catch (err) {
     handleServerError(err, res);
   }
@@ -39,12 +49,10 @@ router.post("/aspirasi", async (req, res) => {
   try {
     const newAspirasi = new Aspirasi(newData);
     await newAspirasi.save();
-    res
-      .status(201)
-      .json({
-        message: "aspirasi created successfully",
-        aspirasi: newAspirasi,
-      });
+    res.status(201).json({
+      message: "aspirasi created successfully",
+      aspirasi: newAspirasi,
+    });
   } catch (err) {
     console.error("Error creating aspirasi:", err);
     res.status(500).json({ message: "Server error" });
