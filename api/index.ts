@@ -4,6 +4,7 @@ const region = require("./routes/Region");
 const suara = require("./routes/Suara");
 const program = require("./routes/Program");
 const aspirasi = require("./routes/Aspirasi");
+const bodyParser = require("body-parser");
 const app = express();
 const cors = require("cors");
 
@@ -12,7 +13,8 @@ connectDB();
 // Use CORS middleware
 app.use(cors());
 
-app.use(express.json());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.use("/", region);
 app.use("/", suara);

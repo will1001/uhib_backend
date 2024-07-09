@@ -2,9 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Program = require("../models/program");
 const mongoose = require("mongoose");
-// const multer = require("multer");
-
-// const upload = multer({ dest: "uploads/" }); // Folder to store uploaded files
+const { storeFile } = require("../../lib/storage");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
@@ -100,21 +98,41 @@ router.put("/program/:id", async (req, res) => {
   }
 });
 
-// router.post("/program", upload.single("file"), async (req, res) => {
-//   const newData = req.body;
+router.post("/program", async (req, res) => {
+  const newData = req.body;
+  const { image, video } = newData;
 
-//   newData._id = new mongoose.Types.ObjectId();
-//   try {
-//     const newProgram = new Program(newData);
-//     await newProgram.save();
-//     res
-//       .status(201)
-//       .json({ message: "Program created successfully", program: newProgram });
-//   } catch (err) {
-//     console.error("Error creating program:", err);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// });
+  if (image && video)
+    res.status(400).json({ message: "image atau video harus salah satu saja" });
+
+  newData._id = new mongoose.Types.ObjectId();
+  console.log(req.body);
+  try {
+    if (image) {
+      if (image[0].filename === "")
+        res.status(400).json({ message: "Gambar File Tidak Boleh Kosong" });
+      const file = await image[0];
+
+      const buff = await file.data;
+      const extFile = image[0].filename.split(".").pop();
+      const filename = `article_${_id}.${extFile}`;
+      await storeFile(buff, "article", filename);
+      let saveData = newData;
+      saveData.image = "/article/" + filename;
+      console.log(saveData);
+      const newProgram = new Program(saveData);
+      await newProgram.save();
+    } else {
+      const newProgram = new Program(newData);
+      await newProgram.save();
+    }
+
+    res.status(201).json({ message: "Program created successfully" });
+  } catch (err) {
+    console.error("Error creating program:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 router.delete("/program/:id", async (req, res) => {
   const { id } = req.params;

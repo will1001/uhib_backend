@@ -1,0 +1,16 @@
+version: '3'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    volumes:
+      - .:/usr/src/app
+      - ../../../var/www/html:/opt/app/uploads
+    environment:
+      NODE_ENV: development
+
+
+

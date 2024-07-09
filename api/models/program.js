@@ -11,6 +11,7 @@ const programSchema = new mongoose.Schema({
   description: { type: String, required: false },
   type: { type: String, required: false },
   category: { type: String, required: false },
+  image: { type: String, required: false },
   video: { type: String, required: false },
   createdAt: { type: Date, required: true, default: Date.now },
   updatedAt: { type: Date, required: true, default: Date.now },
