@@ -9,7 +9,7 @@ services:
       - "3003:3003"
     volumes:
       - .:/usr/src/app
-      - ../../../var/www/html:/opt/app/uploads
+      - ../../../var/www/html:/usr/src/app/uploads
     environment:
       NODE_ENV: development
 

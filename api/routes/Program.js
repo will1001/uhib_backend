@@ -111,14 +111,14 @@ router.post("/program", async (req, res) => {
     if (image) {
       if (image[0].filename === "")
         res.status(400).json({ message: "Gambar File Tidak Boleh Kosong" });
-      const file = await image[0];
-
-      const buff = await file.data;
-      const extFile = image[0].filename.split(".").pop();
-      const filename = `article_${_id}.${extFile}`;
-      await storeFile(buff, "article", filename);
+      const base64Data = image.replace(/^data:image\/\w+;base64,/, ''); // hilangkan header base64
+      const buff = Buffer.from(base64Data, 'base64');
+      
+      const extFile = 'jpg'; // asumsikan ekstensi file jpg
+      const filename = `program_${newData._id}.${extFile}`;
+      await storeFile(buff, "program", filename);
       let saveData = newData;
-      saveData.image = "/article/" + filename;
+      saveData.image = "/program/" + filename;
       console.log(saveData);
       const newProgram = new Program(saveData);
       await newProgram.save();

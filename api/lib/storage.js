@@ -1,7 +1,7 @@
 const fs = require("fs");
 // const sharp = require("sharp");
 
-const storeImage = async (file, dir, name = null, thumb = true) => {
+const storeImage = async (buffer, dir, name = null, thumb = true) => {
   dir = `uploads/${dir}`;
 
   if (!fs.existsSync(dir)) {
@@ -9,17 +9,20 @@ const storeImage = async (file, dir, name = null, thumb = true) => {
   }
 
   try {
-    let attachmentPath = `./${dir}/${name}`;
+    let attachmentPath = path.join(dir, name);
     if (thumb) {
-      let thumbPath = `./${dir}/thumb`;
-      let thumbAttac = `./${dir}/thumb/${name}`;
+      let thumbPath = path.join(dir, "thumb");
+      let thumbAttac = path.join(thumbPath, name);
 
       if (!fs.existsSync(thumbPath)) {
         fs.mkdirSync(thumbPath, { recursive: true });
       }
-      // await sharp(file).resize(100).toFile(thumbAttac);
+      // Jika Anda ingin menggunakan sharp untuk resize gambar
+      // let buffer = Buffer.from(base64String, 'base64');
+      // await sharp(buffer).resize(100).toFile(thumbAttac);
     }
-    fs.writeFileSync(attachmentPath, file);
+    // let buffer = Buffer.from(base64String, 'base64');
+    fs.writeFileSync(attachmentPath, buffer);
     return true;
   } catch (err) {
     console.log(err);
