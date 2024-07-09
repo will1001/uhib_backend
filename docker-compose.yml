@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: uhib
     ports:
       - "3003:3003"
     volumes:

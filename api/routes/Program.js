@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Program = require("../models/program");
 const mongoose = require("mongoose");
-const { storeFile } = require("../../lib/storage");
+const { storeFile } = require("../lib/storage");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
