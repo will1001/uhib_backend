@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 const Program = require("../models/program");
 const mongoose = require("mongoose");
-const multer = require("multer");
+// const multer = require("multer");
 
-const upload = multer({ dest: "uploads/" }); // Folder to store uploaded files
+// const upload = multer({ dest: "uploads/" }); // Folder to store uploaded files
 
 const handleServerError = (err, res) => {
   console.error(err.message);
@@ -100,21 +100,21 @@ router.put("/program/:id", async (req, res) => {
   }
 });
 
-router.post("/program", upload.single("file"), async (req, res) => {
-  const newData = req.body;
+// router.post("/program", upload.single("file"), async (req, res) => {
+//   const newData = req.body;
 
-  newData._id = new mongoose.Types.ObjectId();
-  try {
-    const newProgram = new Program(newData);
-    await newProgram.save();
-    res
-      .status(201)
-      .json({ message: "Program created successfully", program: newProgram });
-  } catch (err) {
-    console.error("Error creating program:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+//   newData._id = new mongoose.Types.ObjectId();
+//   try {
+//     const newProgram = new Program(newData);
+//     await newProgram.save();
+//     res
+//       .status(201)
+//       .json({ message: "Program created successfully", program: newProgram });
+//   } catch (err) {
+//     console.error("Error creating program:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
 
 router.delete("/program/:id", async (req, res) => {
   const { id } = req.params;
