@@ -27,6 +27,34 @@ router.get("/aspirasi", async (req, res) => {
           preserveNullAndEmptyArrays: true,
         },
       },
+      {
+        $lookup: {
+          from: "kecamatans",
+          localField: "id_kecamatan",
+          foreignField: "_id",
+          as: "kecamatan",
+        },
+      },
+      {
+        $unwind: {
+          path: "$kecamatan",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "kelurahans",
+          localField: "id_kelurahan",
+          foreignField: "_id",
+          as: "kelurahan",
+        },
+      },
+      {
+        $unwind: {
+          path: "$kelurahan",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
     ]);
 
     let totalData = await Aspirasi.countDocuments();
