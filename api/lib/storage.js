@@ -1,5 +1,5 @@
 const fs = require("fs");
-const sharp = require("sharp");
+// const sharp = require("sharp");
 
 const storeImage = async (file, dir, name = null, thumb = true) => {
   dir = `uploads/${dir}`;
@@ -17,7 +17,7 @@ const storeImage = async (file, dir, name = null, thumb = true) => {
       if (!fs.existsSync(thumbPath)) {
         fs.mkdirSync(thumbPath, { recursive: true });
       }
-      await sharp(file).resize(100).toFile(thumbAttac);
+      // await sharp(file).resize(100).toFile(thumbAttac);
     }
     fs.writeFileSync(attachmentPath, file);
     return true;
