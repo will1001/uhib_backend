@@ -84,13 +84,16 @@ router.put("/program/:id", async (req, res) => {
   const { id } = req.params;
   const newData = req.body;
 
+  console.log(id);
+  console.log(newData);
+
   try {
     const updatedProgram = await Program.updateOne(
       { _id: id },
       { $set: newData }
     );
     if (updatedProgram.acknowledged) {
-      res.json({ message: "succes" });
+      return res.json({ message: "succes" });
     }
     res.json({ message: "failure" });
   } catch (err) {
@@ -111,10 +114,10 @@ router.post("/program", async (req, res) => {
     if (image) {
       if (image[0].filename === "")
         res.status(400).json({ message: "Gambar File Tidak Boleh Kosong" });
-      const base64Data = image.replace(/^data:image\/\w+;base64,/, ''); // hilangkan header base64
-      const buff = Buffer.from(base64Data, 'base64');
-      
-      const extFile = 'jpg'; // asumsikan ekstensi file jpg
+      const base64Data = image.replace(/^data:image\/\w+;base64,/, ""); // hilangkan header base64
+      const buff = Buffer.from(base64Data, "base64");
+
+      const extFile = "jpg"; // asumsikan ekstensi file jpg
       const filename = `program_${newData._id}.${extFile}`;
       await storeFile(buff, "program", filename);
       let saveData = newData;
