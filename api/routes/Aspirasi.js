@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Aspirasi = require("../models/aspirasi");
 const mongoose = require("mongoose");
+const { storeFile } = require("../lib/storage");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
