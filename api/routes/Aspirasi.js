@@ -87,4 +87,21 @@ router.post("/aspirasi", async (req, res) => {
   }
 });
 
+router.delete("/aspirasi/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedAspirasi = await Aspirasi.deleteOne({ _id: id });
+
+    if (deletedAspirasi.deletedCount === 1) {
+      return res.json({ message: "Aspirasi deleted successfully" });
+    } else {
+      return res.status(404).json({ message: "Aspirasi not found" });
+    }
+  } catch (err) {
+    console.error("Error deleting program:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;
