@@ -72,14 +72,29 @@ router.get("/aspirasi", async (req, res) => {
 
 router.post("/aspirasi", async (req, res) => {
   const newData = req.body;
+  const { image } = newData;
 
   newData._id = new mongoose.Types.ObjectId();
   try {
-    const newAspirasi = new Aspirasi(newData);
-    await newAspirasi.save();
+    if (image) {
+      if (image[0].filename === "")
+        res.status(400).json({ message: "Gambar File Tidak Boleh Kosong" });
+      const base64Data = image.replace(/^data:image\/\w+;base64,/, ""); // hilangkan header base64
+      const buff = Buffer.from(base64Data, "base64");
+
+      const extFile = "jpg"; // asumsikan ekstensi file jpg
+      const filename = `aspirasi${newData._id}.${extFile}`;
+      await storeFile(buff, "aspirasi", filename);
+      let saveData = newData;
+      saveData.image = "/aspirasi/" + filename;
+      const newAspirasi = new Aspirasi(saveData);
+      await newAspirasi.save();
+    } else {
+      const newAspirasi = new Aspirasi(newData);
+      await newAspirasi.save();
+    }
     res.status(201).json({
       message: "aspirasi created successfully",
-      aspirasi: newAspirasi,
     });
   } catch (err) {
     console.error("Error creating aspirasi:", err);
