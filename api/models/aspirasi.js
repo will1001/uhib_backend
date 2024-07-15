@@ -10,6 +10,7 @@ const aspirasiSchema = new mongoose.Schema({
   phone: { type: String, required: false },
   perihal: { type: String, required: false },
   detail: { type: String, required: false },
+  image: { type: String, required: false },
   createdAt: { type: Date, required: true, default: Date.now },
   updatedAt: { type: Date, required: true, default: Date.now },
 });
