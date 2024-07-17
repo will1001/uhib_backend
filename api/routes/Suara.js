@@ -54,6 +54,9 @@ router.put("/suara/:id", async (req, res) => {
       "id_kecamatan",
       "id_kelurahan",
       "tps_id",
+      "id_partai",
+      "id_caleg",
+      "jumlah_suara_sah_partai_caleg",
     ];
     let updateData = {};
 
@@ -105,20 +108,22 @@ router.get("/total-suara-per-tps", async (req, res) => {
                 $expr: {
                   $and: [
                     { $eq: ["$tps_id", "$$tpsId"] },
-                    ...Object.entries(matchQuery).map(([key, value]) => ({ $eq: [`$${key}`, value] })),
-                  ]
-                }
-              }
-            }
+                    ...Object.entries(matchQuery).map(([key, value]) => ({
+                      $eq: [`$${key}`, value],
+                    })),
+                  ],
+                },
+              },
+            },
           ],
-          as: "suaraDetails"
-        }
+          as: "suaraDetails",
+        },
       },
       {
         $unwind: {
           path: "$suaraDetails",
-          preserveNullAndEmptyArrays: true
-        }
+          preserveNullAndEmptyArrays: true,
+        },
       },
       {
         $group: {
@@ -129,24 +134,24 @@ router.get("/total-suara-per-tps", async (req, res) => {
               $add: [
                 { $ifNull: ["$suaraDetails.jumlah", 0] },
                 { $ifNull: ["$suaraDetails.laki_laki", 0] },
-                { $ifNull: ["$suaraDetails.perempuan", 0] }
-              ]
-            }
-          }
-        }
+                { $ifNull: ["$suaraDetails.perempuan", 0] },
+              ],
+            },
+          },
+        },
       },
       {
         $project: {
           _id: 1,
           tpsName: 1,
-          totalSuara: 1
-        }
+          totalSuara: 1,
+        },
       },
       {
         $sort: {
-          _id: 1
-        }
-      }
+          _id: 1,
+        },
+      },
     ];
 
     const totalSuaraPerTPS = await TPS.aggregate(pipeline);
