@@ -15,6 +15,8 @@ const suaraSchema = new mongoose.Schema({
   perempuan: { type: Number, required: false },
   jumlah: { type: Number, required: false },
   jumlah_suara_sah_partai_caleg: { type: Number, required: false },
+  createdAt: { type: Date, required: true, default: Date.now },
+  updatedAt: { type: Date, required: true, default: Date.now },
 });
 
 const suara = mongoose.model("Suara", suaraSchema);
