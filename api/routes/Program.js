@@ -35,7 +35,31 @@ router.get("/program", async (req, res) => {
       if (type === "video") {
         program = await Program.aggregate([
           {
-            $match: { video: { $ne: undefined } },
+            $match: {
+              video: { $ne: undefined },
+            },
+          },
+          {
+            $lookup: {
+              from: "kabupatens",
+              localField: "id_kabupaten",
+              foreignField: "_id",
+              as: "kabupaten",
+            },
+          },
+          {
+            $unwind: {
+              path: "$kabupaten",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ]);
+      } else if (type === "video_artikel") {
+        program = await Program.aggregate([
+          {
+            $match: {
+              $or: [{ type: "artikel" }, { video: { $ne: undefined } }],
+            },
           },
           {
             $lookup: {
