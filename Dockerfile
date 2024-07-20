@@ -12,6 +12,9 @@ WORKDIR /usr/src/app
 # Salin package.json dan package-lock.json (jika ada) ke dalam working directory
 COPY package*.json ./
 
+# Bersihkan cache npm
+RUN npm cache clean --force
+
 RUN npm install -g node-gyp
 
 # Install dependencies
