@@ -1084,9 +1084,9 @@ router.post("/suara/import", async (req, res) => {
                       category_suara: category.id,
                       sub_category_suara: sub_category.id,
                       tps_id: tps._id,
-                      laki_laki: desired_cell_lk.v,
-                      perempuan: desired_cell_pr.v,
-                      jumlah: desired_cell_jml.v,
+                      laki_laki: desired_cell_lk ? desired_cell_lk.v : 0,
+                      perempuan: desired_cell_pr ? desired_cell_pr.v : 0,
+                      jumlah: desired_cell_jml ? desired_cell_jml.v : 0,
                     };
                   }
                 }
@@ -1105,9 +1105,9 @@ router.post("/suara/import", async (req, res) => {
                     category_suara: category.id,
                     sub_category_suara: sub_category.id,
                     tps_id: tps._id,
-                    laki_laki: desired_cell_lk?.v,
-                    perempuan: desired_cell_pr?.v,
-                    jumlah: desired_cell_jml.v,
+                    laki_laki: desired_cell_lk ? desired_cell_lk.v : 0,
+                    perempuan: desired_cell_pr ? desired_cell_pr.v : 0,
+                    jumlah: desired_cell_jml ? desired_cell_jml.v : 0,
                   };
                 }
                 await Suara.findByIdAndUpdate(
@@ -1131,7 +1131,7 @@ router.post("/suara/import", async (req, res) => {
                     category_suara: category.id,
                     sub_category_suara: sub_category.id,
                     tps_id: tps._id,
-                    jumlah: desired_cell_lk?.v,
+                    jumlah: desired_cell_lk ? desired_cell_lk.v : 0,
                   };
                 }
                 await Suara.findByIdAndUpdate(
@@ -1159,9 +1159,9 @@ router.post("/suara/import", async (req, res) => {
                     category_suara: category.id,
                     sub_category_suara: sub_category.id,
                     tps_id: tps._id,
-                    laki_laki: desired_cell_lk.v,
-                    perempuan: desired_cell_pr.v,
-                    jumlah: desired_cell_jml.v,
+                    laki_laki: desired_cell_lk ? desired_cell_lk.v : 0,
+                    perempuan: desired_cell_pr ? desired_cell_pr.v : 0,
+                    jumlah: desired_cell_jml ? desired_cell_jml.v : 0,
                   };
                 }
 
@@ -1187,7 +1187,7 @@ router.post("/suara/import", async (req, res) => {
                 category_suara: category.id,
                 sub_category_suara: 0,
                 tps_id: tps._id,
-                jumlah: desired_cell_lk?.v,
+                jumlah: desired_cell_lk ? desired_cell_lk.v : 0,
               };
 
               await Suara.findByIdAndUpdate(
@@ -1228,7 +1228,9 @@ router.post("/suara/import", async (req, res) => {
                 tps_id: tps._id,
                 id_partai: partai.id,
                 id_caleg: 0,
-                jumlah_suara_sah_partai_caleg: desired_cell_lk.v,
+                jumlah_suara_sah_partai_caleg: desired_cell_lk
+                  ? desired_cell_lk.v
+                  : 0,
               };
 
               await Suara.findByIdAndUpdate(
@@ -1256,7 +1258,9 @@ router.post("/suara/import", async (req, res) => {
                   tps_id: tps._id,
                   id_partai: partai.id,
                   id_caleg: caleg.id,
-                  jumlah_suara_sah_partai_caleg: desired_cell_lk.v,
+                  jumlah_suara_sah_partai_caleg: desired_cell_lk
+                    ? desired_cell_lk.v
+                    : 0,
                 };
 
                 await Suara.findByIdAndUpdate(
