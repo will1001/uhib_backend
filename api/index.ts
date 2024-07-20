@@ -8,7 +8,6 @@ const aspirasi = require("./routes/Aspirasi");
 const bodyParser = require("body-parser");
 const app = express();
 const cors = require("cors");
-const XLSX = require("xlsx");
 
 connectDB();
 

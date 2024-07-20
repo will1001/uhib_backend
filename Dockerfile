@@ -26,5 +26,8 @@ COPY . .
 # Expose port yang digunakan oleh aplikasi Express.js
 EXPOSE 3003
 
+# List npm packages installed
+RUN npm list
+
 # Command untuk menjalankan aplikasi saat container dijalankan
 CMD ["node", "api/index.ts"]
