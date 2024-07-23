@@ -33,7 +33,7 @@ router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
-    if (!user) return res.status(400).send("User tidak ditemukan");
+    if (!user) return res.status(400).send({ message: "User tidak ditemukan" });
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(400).send("Password Salah");
@@ -41,7 +41,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign({ username }, "sadljfnsjfwopierw@#$3220375wlkdfw");
     res.json({ message: "Logged in!", token });
   } catch (error) {
-    res.status(500).send(error.message);
+    res.status(500).send({ message: error.message });
   }
 });
 
