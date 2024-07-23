@@ -4,6 +4,7 @@ const region = require("./routes/Region");
 const suara = require("./routes/Suara");
 const program = require("./routes/Program");
 const slider = require("./routes/Slider");
+const auth = require("./routes/Auth");
 const aspirasi = require("./routes/Aspirasi");
 const bodyParser = require("body-parser");
 const app = express();
@@ -22,6 +23,7 @@ app.use("/", suara);
 app.use("/", program);
 app.use("/", aspirasi);
 app.use("/", slider);
+app.use("/", auth);
 
 app.get("/", (req, res) => res.send("Express on Vercel"));
 

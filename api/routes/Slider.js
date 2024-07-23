@@ -3,6 +3,7 @@ const router = express.Router();
 const Slider = require("../models/slider");
 const mongoose = require("mongoose");
 const { storeFile } = require("../lib/storage");
+const authenticateToken = require("../middleware/auth");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
@@ -22,7 +23,7 @@ router.get("/slider", async (req, res) => {
   }
 });
 
-router.put("/slider/:id", async (req, res) => {
+router.put("/slider/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const updateFields = ["image"];
@@ -56,7 +57,7 @@ router.put("/slider/:id", async (req, res) => {
   }
 });
 
-router.post("/slider", async (req, res) => {
+router.post("/slider", authenticateToken, async (req, res) => {
   const newData = req.body;
   const { image } = newData;
 
@@ -82,7 +83,7 @@ router.post("/slider", async (req, res) => {
   }
 });
 
-router.delete("/slider/:id", async (req, res) => {
+router.delete("/slider/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {

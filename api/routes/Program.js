@@ -3,6 +3,7 @@ const router = express.Router();
 const Program = require("../models/program");
 const mongoose = require("mongoose");
 const { storeFile } = require("../lib/storage");
+const authenticateToken = require("../middleware/auth");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
@@ -104,7 +105,7 @@ router.get("/program", async (req, res) => {
   }
 });
 
-router.put("/program/:id", async (req, res) => {
+router.put("/program/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const newData = req.body;
 
@@ -125,7 +126,7 @@ router.put("/program/:id", async (req, res) => {
   }
 });
 
-router.post("/program", async (req, res) => {
+router.post("/program", authenticateToken, async (req, res) => {
   const newData = req.body;
   const { image, video } = newData;
 
@@ -161,7 +162,7 @@ router.post("/program", async (req, res) => {
   }
 });
 
-router.delete("/program/:id", async (req, res) => {
+router.delete("/program/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {

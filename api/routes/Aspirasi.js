@@ -3,13 +3,14 @@ const router = express.Router();
 const Aspirasi = require("../models/aspirasi");
 const mongoose = require("mongoose");
 const { storeFile } = require("../lib/storage");
+const authenticateToken = require("../middleware/auth");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
   res.status(500).send("Server error");
 };
 
-router.get("/aspirasi", async (req, res) => {
+router.get("/aspirasi", authenticateToken, async (req, res) => {
   const { page, limit } = req.query;
 
   try {
@@ -103,7 +104,7 @@ router.post("/aspirasi", async (req, res) => {
   }
 });
 
-router.delete("/aspirasi/:id", async (req, res) => {
+router.delete("/aspirasi/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {

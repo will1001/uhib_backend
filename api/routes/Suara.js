@@ -5,13 +5,14 @@ const TPS = require("../models/tps");
 const mongoose = require("mongoose");
 const XLSX = require("xlsx");
 const { incrementCell } = require("../lib/helper");
+const authenticateToken = require("../middleware/auth");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
   res.status(500).send("Server error");
 };
 
-router.get("/suara", async (req, res) => {
+router.get("/suara", authenticateToken, async (req, res) => {
   try {
     const {
       grup_suara,
@@ -42,7 +43,7 @@ router.get("/suara", async (req, res) => {
   }
 });
 
-router.put("/suara/:id", async (req, res) => {
+router.put("/suara/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const updateFields = [
@@ -82,7 +83,7 @@ router.put("/suara/:id", async (req, res) => {
   }
 });
 
-router.get("/tps", async (req, res) => {
+router.get("/tps", authenticateToken, async (req, res) => {
   try {
     const tps = await TPS.find({});
     res.json(tps);
@@ -91,7 +92,7 @@ router.get("/tps", async (req, res) => {
   }
 });
 
-router.get("/total-suara-per-tps", async (req, res) => {
+router.get("/total-suara-per-tps", authenticateToken, async (req, res) => {
   try {
     const { id_kabupaten, id_kecamatan, id_kelurahan } = req.query;
     let matchQuery = {};
@@ -163,7 +164,8 @@ router.get("/total-suara-per-tps", async (req, res) => {
     handleServerError(err, res);
   }
 });
-router.post("/suara/import", async (req, res) => {
+
+router.post("/suara/import", authenticateToken, async (req, res) => {
   try {
     const data_suara = [
       {
