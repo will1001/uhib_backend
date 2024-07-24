@@ -121,7 +121,7 @@ router.put("/program/:id", authenticateToken, async (req, res) => {
       const buff = Buffer.from(base64Data, "base64");
 
       const extFile = "jpg"; // asumsikan ekstensi file jpg
-      const filename = `program_${newData._id}.${extFile}`;
+      const filename = `program_${id}.${extFile}`;
       await storeFile(buff, "program", filename);
       let saveData = newData;
       saveData.image = "/program/" + filename;
