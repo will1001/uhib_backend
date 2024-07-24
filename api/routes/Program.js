@@ -108,18 +108,40 @@ router.get("/program", async (req, res) => {
 router.put("/program/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const newData = req.body;
+  const { image, video } = newData;
 
-  console.log(id);
-  console.log(newData);
+  if (image && video)
+    res.status(400).json({ message: "image atau video harus salah satu saja" });
 
   try {
-    const updatedProgram = await Program.updateOne(
-      { _id: id },
-      { $set: newData }
-    );
-    if (updatedProgram.acknowledged) {
-      return res.json({ message: "succes" });
+    if (image) {
+      if (image[0].filename === "")
+        res.status(400).json({ message: "Gambar File Tidak Boleh Kosong" });
+      const base64Data = image.replace(/^data:image\/\w+;base64,/, ""); // hilangkan header base64
+      const buff = Buffer.from(base64Data, "base64");
+
+      const extFile = "jpg"; // asumsikan ekstensi file jpg
+      const filename = `program_${newData._id}.${extFile}`;
+      await storeFile(buff, "program", filename);
+      let saveData = newData;
+      saveData.image = "/program/" + filename;
+      const updatedProgram = await Program.updateOne(
+        { _id: id },
+        { $set: saveData }
+      );
+      if (updatedProgram.acknowledged) {
+        return res.json({ message: "succes" });
+      }
+    } else {
+      const updatedProgram = await Program.updateOne(
+        { _id: id },
+        { $set: newData }
+      );
+      if (updatedProgram.acknowledged) {
+        return res.json({ message: "succes" });
+      }
     }
+
     res.json({ message: "failure" });
   } catch (err) {
     handleServerError(err, res);
