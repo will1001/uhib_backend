@@ -253,10 +253,7 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
                 $expr: {
                   $and: [
                     { $eq: ["$tps_id", "$$tpsId"] },
-                    { $ne: ["$id_partai", null] }, // Memastikan id_partai tidak null
-                    ...Object.entries(matchQuery).map(([key, value]) => ({
-                      $eq: [`$${key}`, value],
-                    })),
+                    { $ne: ["$id_partai", null] }, // Pastikan id_partai tidak null
                   ],
                 },
               },
@@ -273,29 +270,88 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
       },
       {
         $group: {
-          _id: "$suaraDetails.id_partai", // Mengelompokkan berdasarkan id_partai saja
-          totalSuaraSahPartai: {
+          _id: "$suaraDetails.id_partai",
+          totalSuaraPerPartai: {
             $sum: "$suaraDetails.jumlah_suara_sah_partai_caleg",
           },
         },
       },
       {
+        $group: {
+          _id: null, // Agregasi seluruh data menjadi satu kelompok
+          totalSuara: { $sum: "$totalSuaraPerPartai" },
+          suaraPerPartai: {
+            $push: {
+              partai: "$_id",
+              suara: "$totalSuaraPerPartai",
+            },
+          },
+        },
+      },
+      {
+        $unwind: "$suaraPerPartai",
+      },
+      {
         $project: {
           _id: 0,
-          idPartai: "$_id", // Menampilkan id_partai
-          totalSuaraSahPartai: 1,
+          partai: "$suaraPerPartai.partai",
+          suara: "$suaraPerPartai.suara",
+          persentaseSuara: {
+            $multiply: [
+              {
+                $divide: ["$suaraPerPartai.suara", "$totalSuara"],
+              },
+              100,
+            ],
+          },
         },
       },
       {
         $sort: {
-          idPartai: 1,
+          partai: 1,
         },
       },
     ];
 
-    const totalSuaraPerTPS = await TPS.aggregate(pipeline);
+    const totalSuaraPerPartai = await TPS.aggregate(pipeline);
 
-    res.json(totalSuaraPerTPS);
+    let output = [];
+    const suara_kursi = await Suara.aggregate([
+      {
+        $match: {
+          id_kecamatan: { $in: ["5202091", "5202090"] }, // Menyaring dokumen untuk dua kecamatan tersebut
+        },
+      },
+      {
+        $group: {
+          _id: "$id_partai", // Mengelompokkan dokumen berdasarkan id_partai
+          totalSuara: { $sum: "$jumlah_suara_sah_partai_caleg" }, // Menghitung total suara
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          idPartai: "$_id",
+          totalSuara: 1,
+        },
+      },
+      {
+        $sort: {
+          idPartai: 1, // Mengurutkan hasil berdasarkan id_partai
+        },
+      },
+    ]);
+    for (const suara of totalSuaraPerPartai) {
+      output.push({
+        ...suara,
+        kursi: suara_kursi.find((e) => e.idPartai === suara.partai)
+          ? suara_kursi.find((e) => e.idPartai === suara.partai).totalSuara
+          : 0,
+      });
+    }
+    output.shift();
+
+    res.json(output);
   } catch (err) {
     handleServerError(err, res);
   }
