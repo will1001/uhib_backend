@@ -1,11 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const Suara = require("../models/suara");
+const File = require("../models/file");
 const TPS = require("../models/tps");
 const mongoose = require("mongoose");
 const XLSX = require("xlsx");
 const { incrementCell } = require("../lib/helper");
 const authenticateToken = require("../middleware/auth");
+const { storeFile } = require("../lib/storage");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
@@ -1477,6 +1479,57 @@ router.post("/suara/import", authenticateToken, async (req, res) => {
     res.json({ message: "success" });
   } catch (err) {
     handleServerError(err, res);
+  }
+});
+
+router.post("/suara/file", async (req, res) => {
+  const newData = req.body;
+  const { file, ext } = newData;
+
+  newData._id = new mongoose.Types.ObjectId();
+  try {
+    if (file) {
+      if (file[0].filename === "")
+        res.status(400).json({ message: "File Tidak Boleh Kosong" });
+
+      if (ext !== "xlsx") {
+        return res
+          .status(400)
+          .json({ message: "Hanya file .xlsx yang diperbolehkan" });
+      }
+      const base64Data = file.replace(/^data:image\/\w+;base64,/, ""); // hilangkan header base64
+      const buff = Buffer.from(base64Data, "base64");
+
+      const extFile = "xlsx"; // asumsikan ekstensi file jpg
+      const filename = `suara_${newData._id}.${extFile}`;
+      await storeFile(buff, "suara", filename);
+      let saveData = newData;
+      saveData.file = "/suara/" + filename;
+      const newFile = new File(saveData);
+      await newFile.save();
+    } else {
+      const newFile = new File(newData);
+      await newFile.save();
+    }
+    res.status(201).json({
+      message: "File created successfully",
+    });
+  } catch (err) {
+    console.error("Error creating File:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+router.get("/suara/file", async (req, res) => {
+  try {
+    const data = await File.find({ ...req.query });
+
+    res.status(201).json({
+      message: "File created successfully",
+      data,
+    });
+  } catch (err) {
+    console.error("Error creating File:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
