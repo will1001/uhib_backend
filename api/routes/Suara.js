@@ -159,6 +159,142 @@ router.get("/total-suara-per-tps", authenticateToken, async (req, res) => {
     ];
 
     const totalSuaraPerTPS = await TPS.aggregate(pipeline);
+
+    let output = [];
+
+    const suara = await Suara.find({
+      id_kabupaten,
+      id_kecamatan,
+      id_kelurahan,
+    });
+    for (const tps of totalSuaraPerTPS) {
+      const datas = suara.filter((e) => e.tps_id === tps._id);
+      const findSuara = (filter) => {
+        const data = datas.find((e) => {
+          return Object.keys(filter).every((key) => {
+            if (filter[key] !== null) {
+              return e[key] === filter[key];
+            }
+            return true;
+          });
+        });
+
+        return data ? data.jumlah : 0;
+      };
+
+      output.push({
+        _id: tps._id,
+        name: tps.tpsName,
+        jumlah_suara_sah: findSuara({ grup_suara: 5, category_suara: 1 }),
+        jumlah_suara_tidak_sah: findSuara({ grup_suara: 5, category_suara: 2 }),
+        jumlah_pemilih_dalam_DPT: findSuara({
+          grup_suara: 1,
+          category_suara: 1,
+          sub_category_suara: 1,
+        }),
+        pengguna_hak_pilih_dalam_DPT: findSuara({
+          grup_suara: 1,
+          category_suara: 2,
+          sub_category_suara: 1,
+        }),
+        DPTb: findSuara({
+          grup_suara: 1,
+          category_suara: 2,
+          sub_category_suara: 2,
+        }),
+        DPTk: findSuara({
+          grup_suara: 1,
+          category_suara: 1,
+          sub_category_suara: 3,
+        }),
+        surat_suara_yang_diterima: findSuara({
+          grup_suara: 2,
+          category_suara: 1,
+          sub_category_suara: 1,
+        }),
+        surat_suara_yang_digunakan: findSuara({
+          grup_suara: 2,
+          category_suara: 1,
+          sub_category_suara: 2,
+        }),
+        surat_suara_dikembalikan: findSuara({
+          grup_suara: 2,
+          category_suara: 1,
+          sub_category_suara: 3,
+        }),
+        surat_suara_yang_tidak_digunakan: findSuara({
+          grup_suara: 2,
+          category_suara: 1,
+          sub_category_suara: 4,
+        }),
+      });
+    }
+    res.json(output);
+  } catch (err) {
+    handleServerError(err, res);
+  }
+});
+router.get("/total-suara-partai", authenticateToken, async (req, res) => {
+  try {
+    const { id_kabupaten, id_kecamatan, id_kelurahan } = req.query;
+    let matchQuery = {};
+    if (id_kabupaten) matchQuery["id_kabupaten"] = id_kabupaten;
+    if (id_kecamatan) matchQuery["id_kecamatan"] = id_kecamatan;
+    if (id_kelurahan) matchQuery["id_kelurahan"] = id_kelurahan;
+
+    const pipeline = [
+      {
+        $lookup: {
+          from: "suaras",
+          let: { tpsId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$tps_id", "$$tpsId"] },
+                    { $ne: ["$id_partai", null] }, // Memastikan id_partai tidak null
+                    ...Object.entries(matchQuery).map(([key, value]) => ({
+                      $eq: [`$${key}`, value],
+                    })),
+                  ],
+                },
+              },
+            },
+          ],
+          as: "suaraDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$suaraDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$suaraDetails.id_partai", // Mengelompokkan berdasarkan id_partai saja
+          totalSuaraSahPartai: {
+            $sum: "$suaraDetails.jumlah_suara_sah_partai_caleg",
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          idPartai: "$_id", // Menampilkan id_partai
+          totalSuaraSahPartai: 1,
+        },
+      },
+      {
+        $sort: {
+          idPartai: 1,
+        },
+      },
+    ];
+
+    const totalSuaraPerTPS = await TPS.aggregate(pipeline);
+
     res.json(totalSuaraPerTPS);
   } catch (err) {
     handleServerError(err, res);
