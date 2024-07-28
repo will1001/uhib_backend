@@ -254,6 +254,9 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
                   $and: [
                     { $eq: ["$tps_id", "$$tpsId"] },
                     { $ne: ["$id_partai", null] }, // Pastikan id_partai tidak null
+                    { $eq: ["$id_kabupaten", id_kabupaten] }, // Sesuaikan dengan ID yang dibutuhkan
+                    { $eq: ["$id_kecamatan", id_kecamatan] },
+                    { $eq: ["$id_kelurahan", id_kelurahan] },
                   ],
                 },
               },
