@@ -48,6 +48,7 @@ const storeFile = async (file, dir, name = null) => {
 };
 
 const removeFile = async (dir, filename) => {
+  console.log(filename);
   var path = `uploads/${filename}`;
   var path_thumb = `uploads/thumb/${filename}`;
   try {

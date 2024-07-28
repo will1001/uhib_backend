@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const XLSX = require("xlsx");
 const { incrementCell } = require("../lib/helper");
 const authenticateToken = require("../middleware/auth");
-const { storeFile } = require("../lib/storage");
+const { storeFile, removeFile } = require("../lib/storage");
 
 const handleServerError = (err, res) => {
   console.error(err.message);
@@ -1484,10 +1484,16 @@ router.post("/suara/import", authenticateToken, async (req, res) => {
 
 router.post("/suara/file", async (req, res) => {
   const newData = req.body;
-  const { file, ext } = newData;
+  const { file, ext, id_kabupaten, id_kecamatan, id_kelurahan } = newData;
 
   newData._id = new mongoose.Types.ObjectId();
   try {
+    const findFile = await File.findOne({
+      id_kabupaten,
+      id_kecamatan,
+      id_kelurahan,
+    });
+
     if (file) {
       if (file[0].filename === "")
         res.status(400).json({ message: "File Tidak Boleh Kosong" });
@@ -1502,6 +1508,14 @@ router.post("/suara/file", async (req, res) => {
 
       const extFile = "xlsx"; // asumsikan ekstensi file jpg
       const filename = `suara_${newData._id}.${extFile}`;
+      if (findFile) {
+        removeFile("suara", `suara/suara_${findFile._id}.${extFile}`);
+        await File.deleteMany({
+          id_kabupaten,
+          id_kecamatan,
+          id_kelurahan,
+        });
+      }
       await storeFile(buff, "suara", filename);
       let saveData = newData;
       saveData.file = "/suara/" + filename;
