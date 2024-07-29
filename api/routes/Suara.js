@@ -302,14 +302,18 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
           partai: "$suaraPerPartai.partai",
           suara: "$suaraPerPartai.suara",
           persentaseSuara: {
-            $multiply: [
-              {
-                $divide: ["$suaraPerPartai.suara", "$totalSuara"],
-              },
-              100,
-            ],
-          },
-        },
+            $cond: {
+              if: { $eq: ["$totalSuara", 0] },
+              then: 0,
+              else: {
+                $multiply: [
+                  { $divide: ["$suaraPerPartai.suara", "$totalSuara"] },
+                  100
+                ]
+              }
+            }
+          }
+        }
       },
       {
         $sort: {
