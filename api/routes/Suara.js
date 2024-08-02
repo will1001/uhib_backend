@@ -317,7 +317,7 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
       },
       {
         $sort: {
-          partai: 1,
+          suara: -1,
         },
       },
     ];
