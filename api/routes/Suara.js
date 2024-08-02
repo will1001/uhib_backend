@@ -358,7 +358,7 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
           : 0,
       });
     }
-    output.shift();
+    output.pop();
 
     res.json(output);
   } catch (err) {
