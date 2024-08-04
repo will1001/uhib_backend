@@ -10,23 +10,38 @@ const handleServerError = (err, res) => {
   res.status(500).send("Server error");
 };
 
-router.get("/galeri", authenticateToken, async (req, res) => {
+router.get("/galeri", async (req, res) => {
   try {
-    const { category_id } = req.query;
+    const { category_id, group } = req.query;
 
     let filter = {};
     if (category_id) filter.category_id = category_id;
+    let galeri = [];
 
-    const galeri = await Galeri.find(filter).sort({
-      updatedAt: -1,
-    });
+    if (group === "false") {
+      galeri = await Galeri.find(filter).sort({
+        updatedAt: -1,
+      });
+    } else {
+      galeri = await Galeri.aggregate([
+        { $match: filter }, // Filter berdasarkan category_id jika ada
+        {
+          $group: {
+            _id: "$category_id", // Kelompokkan berdasarkan category_id
+            items: { $push: "$$ROOT" }, // Masukkan semua data item ke dalam array 'items'
+          },
+        },
+        { $sort: { "items.updatedAt": -1 } }, // Urutkan berdasarkan updatedAt di dalam setiap kelompok
+      ]);
+    }
+
     res.json(galeri);
   } catch (err) {
     handleServerError(err, res);
   }
 });
 
-router.post("/galeri", authenticateToken, async (req, res) => {
+router.post("/galeri", async (req, res) => {
   const newData = req.body;
   const { image } = newData;
 
