@@ -10,7 +10,7 @@ const handleServerError = (err, res) => {
   res.status(500).send("Server error");
 };
 
-router.get("/galeri", async (req, res) => {
+router.get("/galeri", authenticateToken, async (req, res) => {
   try {
     const { category_id, group } = req.query;
 
@@ -41,7 +41,7 @@ router.get("/galeri", async (req, res) => {
   }
 });
 
-router.post("/galeri", async (req, res) => {
+router.post("/galeri", authenticateToken, async (req, res) => {
   const newData = req.body;
   const { image } = newData;
 
@@ -72,7 +72,7 @@ router.post("/galeri", async (req, res) => {
   }
 });
 
-router.delete("/galeri/:id", async (req, res) => {
+router.delete("/galeri/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {
