@@ -41,15 +41,20 @@ router.get("/galeri", authenticateToken, async (req, res) => {
   }
 });
 
-router.post("/galeri", async (req, res) => {
+router.post("/galeri", authenticateToken, async (req, res) => {
   const newData = req.body;
-  const { image } = newData;
+  const { image, category } = newData;
 
   newData._id = new mongoose.Types.ObjectId();
+
   try {
+    const galeri = await Galeri.findOne({ category });
+    console.log(galeri);
+
     if (image) {
       if (image[0].filename === "")
         res.status(400).json({ message: "Gambar File Tidak Boleh Kosong" });
+
       const base64Data = image.replace(/^data:image\/\w+;base64,/, ""); // hilangkan header base64
       const buff = Buffer.from(base64Data, "base64");
 
@@ -58,6 +63,10 @@ router.post("/galeri", async (req, res) => {
       await storeFile(buff, "galeri", filename);
       let saveData = newData;
       saveData.image = "/galeri/" + filename;
+
+      if (galeri) {
+        saveData.category_id = galeri.category_id;
+      }
       const newGaleri = new Galeri(saveData);
       await newGaleri.save();
     } else {
@@ -72,14 +81,16 @@ router.post("/galeri", async (req, res) => {
   }
 });
 
-router.delete("/galeri/:id", async (req, res) => {
+router.delete("/galeri/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedGaleri = await Galeri.deleteMany({ category_id: id });
-
+    const findGaleries = await Galeri.find({ category_id: id });
     const extFile = "jpg";
-    removeFile("galeri", `galeri/galeri_${id}.${extFile}`);
+    for (const item of findGaleries) {
+      removeFile("galeri", `galeri/galeri_${item.id}.${extFile}`);
+    }
+    const deletedGaleri = await Galeri.deleteMany({ category_id: id });
 
     if (deletedGaleri.deletedCount > 1) {
       return res.json({ message: "Galeri deleted successfully" });
