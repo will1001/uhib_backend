@@ -41,7 +41,7 @@ router.get("/galeri", authenticateToken, async (req, res) => {
   }
 });
 
-router.post("/galeri", authenticateToken, async (req, res) => {
+router.post("/galeri", async (req, res) => {
   const newData = req.body;
   const { image } = newData;
 
@@ -72,7 +72,7 @@ router.post("/galeri", authenticateToken, async (req, res) => {
   }
 });
 
-router.delete("/galeri/:id", authenticateToken, async (req, res) => {
+router.delete("/galeri/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -81,7 +81,7 @@ router.delete("/galeri/:id", authenticateToken, async (req, res) => {
     const extFile = "jpg";
     removeFile("galeri", `galeri/galeri_${id}.${extFile}`);
 
-    if (deletedGaleri.deletedCount === 1) {
+    if (deletedGaleri.deletedCount > 1) {
       return res.json({ message: "Galeri deleted successfully" });
     } else {
       return res.status(404).json({ message: "Galeri not found" });
