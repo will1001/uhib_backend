@@ -76,7 +76,7 @@ router.delete("/galeri/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedGaleri = await Galeri.deleteOne({ category_id: id });
+    const deletedGaleri = await Galeri.deleteMany({ category_id: id });
 
     const extFile = "jpg";
     removeFile("galeri", `galeri/galeri_${id}.${extFile}`);
