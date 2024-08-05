@@ -10,7 +10,7 @@ const handleServerError = (err, res) => {
   res.status(500).send("Server error");
 };
 
-router.get("/galeri", authenticateToken, async (req, res) => {
+router.get("/galeri", async (req, res) => {
   try {
     const { category_id, group } = req.query;
 
