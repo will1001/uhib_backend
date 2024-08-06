@@ -236,9 +236,15 @@ router.get("/total-suara-per-tps", authenticateToken, async (req, res) => {
     handleServerError(err, res);
   }
 });
-router.get("/total-suara-partai", authenticateToken, async (req, res) => {
+router.get("/total-suara-partai", async (req, res) => {
   try {
-    const { id_kabupaten, id_kecamatan, id_kelurahan } = req.query;
+    const {
+      id_kabupaten,
+      id_kecamatan,
+      id_kelurahan,
+      sort_by = "kursi",
+      order = "desc",
+    } = req.query;
     let matchQuery = {};
     if (id_kabupaten) matchQuery["id_kabupaten"] = id_kabupaten;
     if (id_kecamatan) matchQuery["id_kecamatan"] = id_kecamatan;
@@ -255,7 +261,7 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
                 $expr: {
                   $and: [
                     { $eq: ["$tps_id", "$$tpsId"] },
-                    { $ne: ["$id_partai", null] }, // Pastikan id_partai tidak null
+                    { $ne: ["$id_partai", null] },
                     ...Object.entries(matchQuery).map(([key, value]) => ({
                       $eq: [`$${key}`, value],
                     })),
@@ -283,7 +289,7 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
       },
       {
         $group: {
-          _id: null, // Agregasi seluruh data menjadi satu kelompok
+          _id: null,
           totalSuara: { $sum: "$totalSuaraPerPartai" },
           suaraPerPartai: {
             $push: {
@@ -308,12 +314,12 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
               else: {
                 $multiply: [
                   { $divide: ["$suaraPerPartai.suara", "$totalSuara"] },
-                  100
-                ]
-              }
-            }
-          }
-        }
+                  100,
+                ],
+              },
+            },
+          },
+        },
       },
       {
         $sort: {
@@ -328,13 +334,13 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
     const suara_kursi = await Suara.aggregate([
       {
         $match: {
-          id_kecamatan: { $in: ["5202091", "5202090"] }, // Menyaring dokumen untuk dua kecamatan tersebut
+          id_kecamatan: { $in: ["5202091", "5202090"] },
         },
       },
       {
         $group: {
-          _id: "$id_partai", // Mengelompokkan dokumen berdasarkan id_partai
-          totalSuara: { $sum: "$jumlah_suara_sah_partai_caleg" }, // Menghitung total suara
+          _id: "$id_partai",
+          totalSuara: { $sum: "$jumlah_suara_sah_partai_caleg" },
         },
       },
       {
@@ -346,19 +352,39 @@ router.get("/total-suara-partai", authenticateToken, async (req, res) => {
       },
       {
         $sort: {
-          idPartai: 1, // Mengurutkan hasil berdasarkan id_partai
+          idPartai: 1,
         },
       },
     ]);
+
+    let totalKursi = 0;
     for (const suara of totalSuaraPerPartai) {
+      const kursi = suara_kursi.find((e) => e.idPartai === suara.partai)
+        ? suara_kursi.find((e) => e.idPartai === suara.partai).totalSuara
+        : 0;
       output.push({
         ...suara,
-        kursi: suara_kursi.find((e) => e.idPartai === suara.partai)
-          ? suara_kursi.find((e) => e.idPartai === suara.partai).totalSuara
-          : 0,
+        kursi,
       });
+      totalKursi += kursi;
     }
-    output.pop();
+
+    // Tambahkan persentase kursi ke hasil akhir
+    output = output.map((suara) => ({
+      ...suara,
+      persentaseKursi: totalKursi === 0 ? 0 : (suara.kursi / totalKursi) * 100,
+    }));
+
+    // Sort output based on query parameters
+    if (sort_by === "kursi") {
+      output.sort((a, b) =>
+        order === "asc" ? a.kursi - b.kursi : b.kursi - a.kursi
+      );
+    } else if (sort_by === "suara") {
+      output.sort((a, b) =>
+        order === "asc" ? a.suara - b.suara : b.suara - a.suara
+      );
+    }
 
     res.json(output);
   } catch (err) {
